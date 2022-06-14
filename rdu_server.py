@@ -14,7 +14,7 @@ UDPServerSocket.settimeout(2)
 
 acceptedAddr = None
 
-payloadSize = 508
+payloadSize = 507
 
 print("RDU Server is listening!")
 while True:
@@ -33,5 +33,9 @@ while True:
     im.save(temp, format="jpeg", optimize=True, quality=10)
     bytesToSend = temp.getvalue()
     listBytes = [bytesToSend[i:i+payloadSize] for i in range(0, len(bytesToSend), payloadSize)]
-    for i in listBytes:
-      UDPServerSocket.sendto(i,acceptedAddr)
+    maxIndex = len(listBytes) - 1
+    for i, sendB in enumerate(listBytes):
+      if i != maxIndex:
+        UDPServerSocket.sendto(int.to_bytes(i,1,'little')+sendB,acceptedAddr)
+      else:
+        UDPServerSocket.sendto(int.to_bytes(255,1,'little')+sendB,acceptedAddr)

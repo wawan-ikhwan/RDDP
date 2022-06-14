@@ -1,4 +1,6 @@
-data = b'abcdefghi'
-info = [data[i:i+2] for i in range(0, len(data), 2)]
+a = [b'\x01bacot',b'\x02kau',b'\xffboleh']
 
-print(info)
+print(b''.join(a))
+
+
+print(int.from_bytes(int.to_bytes(1,1,'little'),'little'))

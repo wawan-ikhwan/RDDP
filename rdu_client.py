@@ -50,13 +50,15 @@ while isGameRunning:
   if sendCounter <= 0:
     UDPClientSocket.sendto(b'?', serverAddressPort)
     sendCounter = 6
-  currentFrames = b''
+  currentFrames = [None] * 256
   try:
-    bytesFromServer = UDPClientSocket.recvfrom(payloadSize)[0]
-    currentFrames += bytesFromServer
-    while len(bytesFromServer) == payloadSize:
+    idx = None
+    while idx != 255:
       bytesFromServer = UDPClientSocket.recvfrom(payloadSize)[0]
-      currentFrames += bytesFromServer
+      idx = bytesFromServer[0]
+      currentFrames[idx] = bytesFromServer[1:]
+    currentFrames = [x for x in currentFrames if x is not None]
+    currentFrames = b''.join(currentFrames)
   except Exception as e:
     currentFrames = oldFrames
     print(e)
