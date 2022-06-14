@@ -17,13 +17,16 @@ oldBytesFrame = np.fromfile('./waiting-server.jpg', dtype=np.uint8)
 # screenSize = pag.size()
 screenSize = (640, 480)
 
+sendPeriode = time()
 lastDelay = None
 updateDelayTime = time()
 with mss() as sct:
   while True:
     loopTime = time()
 
-    UDPClientSocket.sendto(b'?', addrPortServer)
+    if loopTime - sendPeriode > 3: 
+      UDPClientSocket.sendto(b'?', addrPortServer)
+      sendPeriode = loopTime
     bytesFrame = b''
     lenBytesFromServer = payloadSize
     try:
