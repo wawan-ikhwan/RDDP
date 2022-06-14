@@ -1,5 +1,4 @@
-import pyautogui as pag
-from io import BytesIO
-im = pag.screenshot()
-temp = BytesIO()
-im.save(temp, format="jpeg", optimize=True, quality=10)
+data = b'abcdefghi'
+info = [data[i:i+2] for i in range(0, len(data), 2)]
+
+print(info)

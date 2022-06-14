@@ -18,28 +18,13 @@ from io import BytesIO
 pygame.init()
 
 # NETWORK SETUP
- # START OF USER CONFIG (You can edit it!)
+#  START OF USER CONFIG (You can edit it!)
 serverAddressPort   = ('127.0.0.1', 20001)
-'''
-Server Resolution:
-2160p=3840x2160
-1440p=2560*1440
-1080p=1920*1080
-720p=1280*720
-480p=640*480
-360p=480*360
-240p=426*240
-144p=256*144
-'''
-# serverResolution = (426, 240)
+# serverAddressPort   = ('27.112.79.120', 20001)
  # END OF USER CONFIG
-bufferSize = 65507 # MAX SIZE THAT UDP CAN HANDLE
-# repeatReceive = ((serverResolution[0] * serverResolution[1] * 3) // bufferSize) + 1
+payloadSize = 508 # MAX SIZE THAT UDP CAN HANDLE
 UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 UDPClientSocket.settimeout(2)
-
-# print(len(byteFromServer))
-# print(sha256(byteFromServer).hexdigest())
 
 # START OF GAME SETUP
 pygame.display.set_caption('RDU')
@@ -52,7 +37,7 @@ SCREEN = pygame.display.set_mode((WIDTH, HEIGHT)) # surface
 avgBuff = []
 lastAvgBuff = 0
 sendCounter = 0
-oldByteFromServer = open('hoho.jpg','rb').read()
+oldFrames = open('waiting-server.jpg','rb').read()
 # END OF INITIALIZING
 
 print('Starting...')
@@ -64,13 +49,18 @@ while isGameRunning:
   current_ticks = pygame.time.get_ticks()
   if sendCounter <= 0:
     UDPClientSocket.sendto(b'?', serverAddressPort)
-    sendCounter = 3
-  byteFromServer = oldByteFromServer
+    sendCounter = 6
+  currentFrames = b''
   try:
-    byteFromServer = UDPClientSocket.recvfrom(bufferSize)[0]
+    bytesFromServer = UDPClientSocket.recvfrom(payloadSize)[0]
+    currentFrames += bytesFromServer
+    while len(bytesFromServer) == payloadSize:
+      bytesFromServer = UDPClientSocket.recvfrom(payloadSize)[0]
+      currentFrames += bytesFromServer
   except Exception as e:
+    currentFrames = oldFrames
     print(e)
-  oldByteFromServer = byteFromServer
+  print('f',len(currentFrames))
   sendCounter -= 1
 
   # START OF EVENT
@@ -87,11 +77,14 @@ while isGameRunning:
   
   # START OF UPDATING
   # im = pag.screenshot()
-  im = Image.open(BytesIO(byteFromServer))
-  # im = Image.frombuffer('RGB', serverResolution, byteFromServer)
-  im = im.resize((WIDTH, HEIGHT))
-  # im = im.resize((480, 360))
-  imBytes = im.tobytes()
+  try:
+    im = Image.open(BytesIO(currentFrames))
+    im = im.resize((WIDTH, HEIGHT))
+    imBytes = im.tobytes()
+  except:
+    im = Image.open(BytesIO(oldFrames))
+    im = im.resize((WIDTH, HEIGHT))
+    imBytes = im.tobytes()
   # END OF UPDATING
   
   # START OF DRAWING
@@ -108,7 +101,6 @@ while isGameRunning:
   # END LOOP
   pygame.display.update()
   avgBuff.append(pygame.time.get_ticks() - current_ticks)
-  
-
+  oldFrames = currentFrames
 
 pygame.quit()
