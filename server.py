@@ -42,7 +42,7 @@ with mss() as sct:
     try:
       dataFromClient, addrPortClient = UDPServerSocket.recvfrom(1024)
       if dataFromClient == b'shutdown':
-        exit()
+        break
     except:
       addrPortClient = None
 
