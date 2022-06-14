@@ -30,7 +30,7 @@ addrPortServer = ('10.5.143.3', 20001)
 UDPServerSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 UDPServerSocket.bind(addrPortServer)
 UDPServerSocket.settimeout(0.5)
-payloadSize = 1024
+payloadSize = 1357
 
 monitor = {"top": 0, "left": 0, "width": screenSize[0], "height": screenSize[1]}
 
@@ -61,4 +61,4 @@ with mss() as sct:
       bytesToSend = encImg.tobytes()
       for i in range(0, len(bytesToSend), payloadSize):
         UDPServerSocket.sendto(bytesToSend[i:i+payloadSize], addrPortClient)
-    print(time() - loopTime)
+    # print(time() - loopTime)

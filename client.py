@@ -10,7 +10,8 @@ import socket
 addrPortServer = ('27.112.79.120', 20001)
 UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 UDPClientSocket.settimeout(1)
-payloadSize = 1024
+payloadSize = 1357
+recvFromSize = payloadSize * 2
 
 defaultFrame = np.fromfile('./waiting-server.jpg', dtype=np.uint8)
 oldBytesFrame = defaultFrame
@@ -33,7 +34,7 @@ with mss() as sct:
     lenBytesFromServer = payloadSize
     try:
       while lenBytesFromServer == payloadSize:
-        bytesFromServer = UDPClientSocket.recvfrom(payloadSize*2)[0]
+        bytesFromServer = UDPClientSocket.recvfrom(recvFromSize)[0]
         lenBytesFromServer = len(bytesFromServer)
         bytesFrame += bytesFromServer
     except:
