@@ -29,22 +29,25 @@ addrPortServer = ('127.0.0.1', 20001)
 addrPortServer = ('10.5.143.3', 20001)
 UDPServerSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 UDPServerSocket.bind(addrPortServer)
-UDPServerSocket.settimeout(2)
+UDPServerSocket.settimeout(0.5)
 payloadSize = 508
 
 monitor = {"top": 0, "left": 0, "width": screenSize[0], "height": screenSize[1]}
+
+updater = time()
 
 print('UDP Server is running...')
 with mss() as sct:
   while True:
     loopTime = time()
 
-    try:
-      dataFromClient, addrPortClient = UDPServerSocket.recvfrom(1024)
-      if dataFromClient == b'shutdown':
-        break
-    except:
-      addrPortClient = None
+    if loopTime - updater > 3:
+      try:
+        dataFromClient, addrPortClient = UDPServerSocket.recvfrom(1024)
+        if dataFromClient == b'shutdown':
+          break
+      except:
+        addrPortClient = None
 
     if addrPortClient is not None:
       frame = np.asarray(sct.grab(monitor))
