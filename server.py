@@ -5,7 +5,7 @@ from mss import mss
 import pyautogui as pag
 import socket
 
-monitor = pag.size()
+screenSize = pag.size()
 
 # Optimization Config
 '''
@@ -18,7 +18,7 @@ monitor = pag.size()
 240p  = (426, 240)
 144p  = (256, 144)
 '''
-# resolution = monitor # Uncomment for using server resolution
+# resolution = screenSize # Uncomment for using server resolution
 resolution = (256, 144) # Uncomment for using common resolution
 compression = 5 # 100 means no compress, 0 is highest compression!
 
@@ -29,7 +29,7 @@ UDPServerSocket.bind(addrPortServer)
 UDPServerSocket.settimeout(2)
 payloadSize = 508
 
-monitor = {"top": 0, "left": 0, "width": monitor[0], "height": monitor[1]}
+monitor = {"top": 0, "left": 0, "width": screenSize[0], "height": screenSize[1]}
 
 print('UDP Server is running...')
 with mss() as sct:
@@ -48,7 +48,7 @@ with mss() as sct:
       encodeParam = (int(cv.IMWRITE_JPEG_QUALITY), compression)
       isSucceed, encImg = cv.imencode('.jpg', frame, encodeParam)
       bytesToSend = encImg.tobytes()
-      # print(len(bytesToSend))
       listBytesToSend = [bytesToSend[i:i+payloadSize] for i in range(0, len(bytesToSend), payloadSize)]
       for b in listBytesToSend:
         UDPServerSocket.sendto(b, addrPortClient)
+    print(time() - loopTime)
