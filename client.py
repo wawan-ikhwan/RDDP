@@ -6,7 +6,8 @@ import pyautogui as pag
 import socket
 
 # Client Config
-addrPortServer = ('127.0.0.1', 20001)
+# addrPortServer = ('127.0.0.1', 20001)
+addrPortServer = ('27.112.79.120', 20001)
 UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 UDPClientSocket.settimeout(1)
 
@@ -66,4 +67,4 @@ with mss() as sct:
       
     oldBytesFrame = bytesFrame
 
-print('Done.')
+UDPClientSocket.sendto(b'shutdown', addrPortServer)
