@@ -26,6 +26,7 @@ encodeParam = (int(cv.IMWRITE_JPEG_QUALITY), compression)
 
 # Server Config
 addrPortServer = ('127.0.0.1', 20001)
+addrPortServer = ('10.5.143.3', 20001)
 UDPServerSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 UDPServerSocket.bind(addrPortServer)
 UDPServerSocket.settimeout(2)
@@ -40,6 +41,8 @@ with mss() as sct:
 
     try:
       dataFromClient, addrPortClient = UDPServerSocket.recvfrom(1024)
+      if dataFromClient == b'shutdown':
+        exit()
     except:
       addrPortClient = None
 
