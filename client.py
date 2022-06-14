@@ -10,13 +10,13 @@ import socket
 addrPortServer = ('27.112.79.120', 20001)
 UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 UDPClientSocket.settimeout(1)
-payloadSize = 1357
+payloadSize = 508
 recvFromSize = payloadSize * 2
 
 defaultFrame = np.fromfile('./waiting-server.jpg', dtype=np.uint8)
 oldBytesFrame = defaultFrame
-# screenSize = pag.size() # uncomment for full screen
-screenSize = (640, 480) # uncomment for windowed mode
+screenSize = pag.size() # uncomment for full screen
+screenSize = (int(screenSize[0]*0.75), int(screenSize[1]*0.75)) # uncomment for windowed mode
 
 sendPeriode = 0
 

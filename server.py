@@ -29,7 +29,7 @@ addrPortServer = ('0.0.0.0', 20001)
 UDPServerSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 UDPServerSocket.bind(addrPortServer)
 UDPServerSocket.settimeout(0.5)
-payloadSize = 1357
+payloadSize = 508
 
 monitor = {"top": 0, "left": 0, "width": screenSize[0], "height": screenSize[1]}
 
@@ -37,7 +37,7 @@ receivePeriode = time()
 
 addrPortClient = None
 
-print('UDP Server is running...')
+print('RDU Server is running...')
 with mss() as sct:
   while True:
     loopTime = time()
