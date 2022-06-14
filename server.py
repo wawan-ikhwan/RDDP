@@ -19,14 +19,13 @@ screenSize = pag.size()
 144p  = (256, 144)
 '''
 # resolution = screenSize # Uncomment for using server resolution
-resolution = (256, 144) # Uncomment for using common resolution
+resolution = (640, 480) # Uncomment for using common resolution
 compression = 5 # 100 means no compress, 0 is highest compression!
 encodeParam = (int(cv.IMWRITE_JPEG_QUALITY), compression)
 
 
 # Server Config
-addrPortServer = ('127.0.0.1', 20001)
-addrPortServer = ('10.5.143.3', 20001)
+addrPortServer = ('0.0.0.0', 20001)
 UDPServerSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 UDPServerSocket.bind(addrPortServer)
 UDPServerSocket.settimeout(0.5)
@@ -47,6 +46,7 @@ with mss() as sct:
       try:
         dataFromClient, addrPortClient = UDPServerSocket.recvfrom(1024)
         if b'shutdown' in dataFromClient:
+          print('Shutdown from client!')
           break
       except:
         addrPortClient = None
