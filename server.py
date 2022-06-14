@@ -36,6 +36,8 @@ monitor = {"top": 0, "left": 0, "width": screenSize[0], "height": screenSize[1]}
 
 updater = time()
 
+addrPortClient = None
+
 print('UDP Server is running...')
 with mss() as sct:
   while True:
