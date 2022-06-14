@@ -10,15 +10,17 @@ import socket
 addrPortServer = ('27.112.79.120', 20001)
 UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 UDPClientSocket.settimeout(1)
-payloadSize = 508
+payloadSize = 1024
 
-oldBytesFrame = np.fromfile('./waiting-server.jpg', dtype=np.uint8)
+defaultFrame = np.fromfile('./waiting-server.jpg', dtype=np.uint8)
+oldBytesFrame = defaultFrame
+# screenSize = pag.size() # uncomment for full screen
+screenSize = (640, 480) # uncomment for windowed mode
 
-# screenSize = pag.size()
-screenSize = (640, 480)
+sendPeriode = 0
 
-sendPeriode = time()
-lastDelay = None
+currentDelay = []
+avgDelay = 0
 updateDelayTime = time()
 with mss() as sct:
   while True:
@@ -31,38 +33,40 @@ with mss() as sct:
     lenBytesFromServer = payloadSize
     try:
       while lenBytesFromServer == payloadSize:
-        bytesFromServer = UDPClientSocket.recvfrom(payloadSize)[0]
+        bytesFromServer = UDPClientSocket.recvfrom(payloadSize*2)[0]
         lenBytesFromServer = len(bytesFromServer)
         bytesFrame += bytesFromServer
     except:
       bytesFrame = oldBytesFrame
 
-    # print(len(bytesFrame))
-
     try:
       frame = cv.imdecode(np.frombuffer(bytesFrame, dtype=np.uint8), 1)
-      frame = cv.resize(frame,screenSize)
+      frame = cv.resize(frame, screenSize)
     except Exception as e:
       print(e)
       frame = cv.imdecode(np.frombuffer(oldBytesFrame, dtype=np.uint8), 1)
       frame = cv.resize(frame, screenSize)
 
     # FPS Management
-    currentDelay = (time() - loopTime)
+    currentDelay.append(time() - loopTime)
     if time() - updateDelayTime > 1:
-      lastDelay = currentDelay
+      avgDelay = sum(currentDelay) / len(currentDelay)
+      currentDelay = []
       print(len(bytesFrame))
       updateDelayTime = time()
     frame = cv.putText(frame, 
-      text = str(lastDelay)[:6], 
-      org = (10,20), 
+      text = str(avgDelay), 
+      org = (10,40), 
       fontFace = cv.FONT_HERSHEY_SIMPLEX, 
-      fontScale = 0.6, 
+      fontScale = 1, 
       thickness = 2, 
       lineType = cv.LINE_AA,
-      color = (255,255,0))
+      color = (0,0,255))
 
-    cv.imshow('RDU Client', frame)
+    try:
+      cv.imshow('RDU Client', frame)
+    except:
+      cv.imshow('RDU Client', cv.imdecode(defaultFrame,1))
 
     if cv.waitKey(1) == ord('q'):
       cv.destroyAllWindows()
