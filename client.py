@@ -10,6 +10,7 @@ import socket
 addrPortServer = ('27.112.79.120', 20001)
 UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 UDPClientSocket.settimeout(1)
+payloadSize = 508
 
 oldBytesFrame = np.fromfile('./waiting-server.jpg', dtype=np.uint8)
 
@@ -24,10 +25,10 @@ with mss() as sct:
 
     UDPClientSocket.sendto(b'?', addrPortServer)
     bytesFrame = b''
-    lenBytesFromServer = 508
+    lenBytesFromServer = payloadSize
     try:
-      while lenBytesFromServer == 508:
-        bytesFromServer = UDPClientSocket.recvfrom(65507)[0]
+      while lenBytesFromServer == payloadSize:
+        bytesFromServer = UDPClientSocket.recvfrom(payloadSize)[0]
         lenBytesFromServer = len(bytesFromServer)
         bytesFrame += bytesFromServer
     except:
@@ -42,7 +43,6 @@ with mss() as sct:
       print(e)
       frame = cv.imdecode(np.frombuffer(oldBytesFrame, dtype=np.uint8), 1)
       frame = cv.resize(frame, screenSize)
-
 
     # FPS Management
     currentDelay = (time() - loopTime)

@@ -34,7 +34,7 @@ payloadSize = 508
 
 monitor = {"top": 0, "left": 0, "width": screenSize[0], "height": screenSize[1]}
 
-updater = time()
+receivePeriode = time()
 
 addrPortClient = None
 
@@ -43,13 +43,15 @@ with mss() as sct:
   while True:
     loopTime = time()
 
-    if loopTime - updater > 3:
+    if loopTime - receivePeriode > 3:
       try:
         dataFromClient, addrPortClient = UDPServerSocket.recvfrom(1024)
-        if dataFromClient == b'shutdown':
+        if b'shutdown' in dataFromClient:
           break
       except:
         addrPortClient = None
+      receivePeriode = loopTime
+      
 
     if addrPortClient is not None:
       frame = np.asarray(sct.grab(monitor))
