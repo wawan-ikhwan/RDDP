@@ -4,6 +4,9 @@ import zlib
 import cv2 as cv
 from time import time
 import numpy as np
+import pyautogui as pag
+
+SYS_MONITOR_SIZE = pag.size()
 
 # Server Config
 addrPortServer   = ('127.0.0.1', 20001)
@@ -28,6 +31,8 @@ resolution = (480, 360)
 jpegCompression = 50 # 1 high compression, 95 low compression, 100 means no compression
 zlibLevelCompression = 9 # 1 means fast but less compression, 9 means high compression but slow, 0 means no compressed
 payloadSize = 508 * 1 # 508 is safe maximum UDP payload size. (should match with client)
+regionOfInterest = {'left': (SYS_MONITOR_SIZE[0]//2)-100, 'top': (SYS_MONITOR_SIZE[1]//2)-100, 'width': 100, 'height': 100} # set none for full screen
+#regionOfInterest = None
 
 # Initializing
 receiveCounter = 0
@@ -36,6 +41,7 @@ encodeParam = (cv.IMWRITE_JPEG_QUALITY, jpegCompression)
 
 print("RDDP Server is listening!")
 with mss() as sct:
+  monitor = regionOfInterest if regionOfInterest is not None else sct.monitors[1]
   while True:
     loopTime = time()
   
@@ -43,9 +49,9 @@ with mss() as sct:
       if loopTime - receiveCounter > 3: # RECEIVE PERIOD (in second)
         receiveCounter = loopTime
         dataFromClient, addrPortClient = UDPServerSocket.recvfrom(3)
-        print(dataFromClient)
-        if dataFromClient == b'FIN':
-          print('Signal finish from client!')
+        # print(dataFromClient)
+        if dataFromClient == b'\x1b': # ESC (ESCAPE ASCII)
+          print('Signal ESC from client!')
           addrPortClient = None
           break
     except Exception as e:
@@ -53,19 +59,11 @@ with mss() as sct:
       addrPortClient = None
 
     if addrPortClient is not None:
-      t0 = time()
-      ss = sct.grab(sct.monitors[1])
-      currentFrame = np.asarray(ss)
-      
-      if resolution is not None: currentFrame = cv.resize(currentFrame, resolution)
-      
+      currentFrame = np.asarray(sct.grab(monitor))
       currentFrame = cv.cvtColor(currentFrame, cv.COLOR_BGRA2BGR)
-
+      if resolution is not None: currentFrame = cv.resize(currentFrame, resolution)
       result, encImg = cv.imencode('.jpg', currentFrame, encodeParam)
-
       bytesToSend = zlib.compress(encImg.tobytes(), zlibLevelCompression)
-
-      UDPServerSocket.sendto(b'SYN', addrPortClient)
+      UDPServerSocket.sendto(b'\x16', addrPortClient) # SEND SYN ASCII
       for i in range(0, len(bytesToSend), payloadSize):
         UDPServerSocket.sendto(bytesToSend[i:i+payloadSize], addrPortClient)
-      print(time() - t0)

@@ -51,7 +51,7 @@ isGameRunning = True
 while isGameRunning:
 
   # REFRESH
-  clock.tick(30)
+  clock.tick(60)
   currentTick = pygame.time.get_ticks()
 
   # START OF EVENT
@@ -60,18 +60,25 @@ while isGameRunning:
       isGameRunning = False
   # END OF EVENT
 
+  # START OF USER INPUT
+  mouse_pos = pygame.mouse.get_pos()
+  mouse_pressed = pygame.mouse.get_pressed()
+  key_pressed = pygame.key.get_pressed()
+  # END OF USER INPUT
+
+  # SENDING DATA TO SERVER
+  if currentTick - sendTicker > 3000: # SEND PERIOD (in ms)
+    UDPClientSocket.sendto(b'\x06', addrPortServer) # SEND ACK ASCII
+    sendTicker = currentTick
 
   # RECEIVING DATA FROM SERVER
-  if currentTick - sendTicker > 3000: # RECEIVE PERIOD (in ms)
-    UDPClientSocket.sendto(b'TRX', addrPortServer)
-    sendTicker = currentTick
   try: # GETTING FRAME
     bytesReceived = b''
     latency = pygame.time.get_ticks()
     while True:
       bytesFromServer = UDPClientSocket.recvfrom(payloadSize)[0]
       bytesReceived += bytesFromServer
-      if bytesFromServer == b'SYN':
+      if bytesFromServer == b'\x16': # IF SYN
         bytesReceived = b''
         continue
       elif len(bytesFromServer) != payloadSize:
@@ -84,13 +91,7 @@ while isGameRunning:
   except Exception as e:
     latency = None
     currentFrame = oldFrame
-    print(e)
-
-  # START OF USER INPUT
-  mouse_pos = pygame.mouse.get_pos()
-  mouse_pressed = pygame.mouse.get_pressed()
-  key_pressed = pygame.key.get_pressed()
-  # END OF USER INPUT
+    # print(e)
   
   #START OF UPDATING
   # END OF UPDATING
@@ -105,5 +106,5 @@ while isGameRunning:
   # END LOOP
   oldFrame = currentFrame
   pygame.display.update()
-UDPClientSocket.sendto(b'FIN', addrPortServer)
+UDPClientSocket.sendto(b'\x1b', addrPortServer) # SEND ESC ASCII
 pygame.quit()
