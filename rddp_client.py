@@ -21,7 +21,7 @@ pygame.init()
 
 # NETWORK SETUP
 #  START OF USER CONFIG (You can edit it!)
-addrPortServer   = ('127.0.0.1', 20001)
+addrPortServer   = ('localhost', 20001)
  # END OF USER CONFIG
 payloadSize = 508 * 1 # 508 is safe maximum payload size. (should match with server)
 UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
@@ -51,7 +51,7 @@ isGameRunning = True
 while isGameRunning:
 
   # REFRESH
-  clock.tick(60)
+  clock.tick(30)
   currentTick = pygame.time.get_ticks()
 
   # START OF EVENT
