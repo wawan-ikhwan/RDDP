@@ -27,7 +27,7 @@ UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 UDPClientSocket.settimeout(1)
 
 # START OF GAME SETUP
-pygame.display.set_caption('RDU Client')
+pygame.display.set_caption('RDDP Client')
 FONT_COMIC = pygame.font.SysFont('Cambria Math', 20)
 # SCREEN_SIZE = (640, 480) # use specific monitor
 SCREEN_SIZE = (SYS_MONITOR_SIZE[0]//2, SYS_MONITOR_SIZE[1]//2) # or system monitor

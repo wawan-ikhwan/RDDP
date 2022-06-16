@@ -34,7 +34,7 @@ receiveCounter = 0
 addrPortClient = None
 encodeParam = (cv.IMWRITE_JPEG_QUALITY, jpegCompression)
 
-print("RDU Server is listening!")
+print("RDDP Server is listening!")
 with mss() as sct:
   while True:
     loopTime = time()
