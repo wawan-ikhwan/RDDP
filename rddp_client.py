@@ -23,7 +23,7 @@ pygame.init()
 #  START OF USER CONFIG (You can edit it!)
 addrPortServer   = ('127.0.0.1', 20001)
  # END OF USER CONFIG
-payloadSize = 508 * 2 # 508 is safe maximum payload size. (should match with server)
+payloadSize = 508 * 1 # 508 is safe maximum payload size. (should match with server)
 UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 UDPClientSocket.settimeout(1)
 
@@ -43,6 +43,7 @@ oldFrame = cv.resize(cv.imread('./waiting-server.jpg'), SCREEN_SIZE).tobytes()
 
 # TIME VAR
 sendTicker = 0
+displayTicker = 0
 clock = pygame.time.Clock()
 
 print('Running...')
@@ -76,7 +77,6 @@ while isGameRunning:
       elif len(bytesFromServer) != payloadSize:
         decompressedBytes = zlib.decompress(bytesReceived)
         currentFrame = cv.imdecode(np.frombuffer(decompressedBytes, dtype=np.uint8), 1)
-
         currentFrame = cv.resize(currentFrame, SCREEN_SIZE)
         currentFrame = currentFrame.tobytes()
         break
@@ -98,7 +98,7 @@ while isGameRunning:
   # # START OF DRAWING
   SCREEN.blit(pygame.image.frombuffer(currentFrame, SCREEN_SIZE, 'BGR'), (0,0))
   SCREEN.blit(FONT_COMIC.render('FPS:'+str(clock.get_fps())[:5], False, (0,255,0)),(10,10*1))
-  SCREEN.blit(FONT_COMIC.render('LATENCY:'+str(latency), False, (0,255,0)),(10,10*2))
+  SCREEN.blit(FONT_COMIC.render('Latency:'+str(latency), False, (0,255,0)),(10,10*2))
   SCREEN.blit(FONT_COMIC.render('BytesReceived:'+str(len(bytesReceived)), False, (0,255,0)),(10,10*3))
   # END OF DRAWING
 

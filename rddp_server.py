@@ -26,8 +26,8 @@ None  = (original resolution)
 '''
 resolution = (640, 480)
 jpegCompression = 50 # 1 high compression, 95 low compression, 100 means no compression
-zlibLevelCompression = -1 # 1 means fast but less compression, 9 means high compression but slow, 0 means no compressed
-payloadSize = 508 * 2 # 508 is safe maximum UDP payload size. (should match with client)
+zlibLevelCompression = 9 # 1 means fast but less compression, 9 means high compression but slow, 0 means no compressed
+payloadSize = 508 * 1 # 508 is safe maximum UDP payload size. (should match with client)
 
 # Initializing
 receiveCounter = 0
@@ -49,15 +49,16 @@ with mss() as sct:
           addrPortClient = None
           break
     except Exception as e:
-      print(e)
+      # print(e)
       addrPortClient = None
 
     if addrPortClient is not None:
       ss = sct.grab(sct.monitors[1])
       currentFrame = np.asarray(ss)
-      currentFrame = cv.cvtColor(currentFrame, cv.COLOR_BGRA2BGR)
-
+      
       if resolution is not None: currentFrame = cv.resize(currentFrame, resolution)
+      
+      currentFrame = cv.cvtColor(currentFrame, cv.COLOR_BGRA2BGR)
 
       result, encImg = cv.imencode('.jpg', currentFrame, encodeParam)
 
