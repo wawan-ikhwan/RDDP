@@ -24,9 +24,9 @@ None  = (original resolution)
 240p  = (426, 240)
 144p  = (256, 144)
 '''
-resolution = None
-jpegCompression = 50 # 1 high compression, 95 low compression, 100 no compression
-zlibLevelCompression = 9 # 1 means fast but less compression, 9 means high compression but slow, -1 default, 0 no compression
+resolution = (640, 480)
+jpegCompression = 50 # 1 high compression, 95 low compression, 100 means no compression
+zlibLevelCompression = -1 # 1 means fast but less compression, 9 means high compression but slow, 0 means no compressed
 payloadSize = 508 * 2 # 508 is safe maximum UDP payload size. (should match with client)
 
 # Initializing
@@ -46,6 +46,7 @@ with mss() as sct:
         print(dataFromClient)
         if dataFromClient == b'FIN':
           print('Signal finish from client!')
+          addrPortClient = None
           break
     except Exception as e:
       print(e)
@@ -55,9 +56,13 @@ with mss() as sct:
       ss = sct.grab(sct.monitors[1])
       currentFrame = np.asarray(ss)
       currentFrame = cv.cvtColor(currentFrame, cv.COLOR_BGRA2BGR)
+
       if resolution is not None: currentFrame = cv.resize(currentFrame, resolution)
+
       result, encImg = cv.imencode('.jpg', currentFrame, encodeParam)
+
       bytesToSend = zlib.compress(encImg.tobytes(), zlibLevelCompression)
+
       UDPServerSocket.sendto(b'SYN', addrPortClient)
       for i in range(0, len(bytesToSend), payloadSize):
         UDPServerSocket.sendto(bytesToSend[i:i+payloadSize], addrPortClient)
