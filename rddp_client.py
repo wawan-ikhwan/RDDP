@@ -13,9 +13,9 @@ import socket
 import zlib
 import numpy as np
 import cv2 as cv
-import pyautogui as pag
+from pyautogui import size as screenSize
 
-SYS_MONITOR_SIZE = pag.size()
+SYS_MONITOR_SIZE = screenSize()
 
 pygame.init()
 
