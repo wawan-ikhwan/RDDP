@@ -27,17 +27,24 @@ None  = (original resolution)
 240p  = (426, 240)
 144p  = (256, 144)
 '''
-resolution = (480, 360)
-jpegCompression = 50 # 1 high compression, 95 low compression, 100 means no compression
+resolution = (640, 480)
+isJpg = True # True means JPG, False means PNG
+jpegCompression = 45 # 1 high compression, 95 low compression, 100 means no compression
+pngCompression = 9 # 0 means no compression 9 means high compression
 zlibLevelCompression = 9 # 1 means fast but less compression, 9 means high compression but slow, 0 means no compressed
 payloadSize = 508 * 1 # 508 is safe maximum UDP payload size. (should match with client)
 regionOfInterest = {'left': (SYS_MONITOR_SIZE[0]//2)-100, 'top': (SYS_MONITOR_SIZE[1]//2)-100, 'width': 100, 'height': 100} # set none for full screen
-#regionOfInterest = None
+regionOfInterest = None
 
 # Initializing
 receiveCounter = 0
 addrPortClient = None
-encodeParam = (cv.IMWRITE_JPEG_QUALITY, jpegCompression)
+if isJpg:
+  encodeParam = (cv.IMWRITE_JPEG_QUALITY, jpegCompression)
+  ext = '.jpg'
+else:
+  encodeParam = (cv.IMWRITE_PNG_COMPRESSION, pngCompression)
+  ext = '.png'
 
 print("RDDP Server is listening!")
 with mss() as sct:
@@ -62,7 +69,7 @@ with mss() as sct:
       currentFrame = np.asarray(sct.grab(monitor))
       currentFrame = cv.cvtColor(currentFrame, cv.COLOR_BGRA2BGR)
       if resolution is not None: currentFrame = cv.resize(currentFrame, resolution)
-      result, encImg = cv.imencode('.jpg', currentFrame, encodeParam)
+      result, encImg = cv.imencode(ext, currentFrame, encodeParam)
       bytesToSend = zlib.compress(encImg.tobytes(), zlibLevelCompression)
       UDPServerSocket.sendto(b'\x16', addrPortClient) # SEND SYN ASCII
       for i in range(0, len(bytesToSend), payloadSize):
