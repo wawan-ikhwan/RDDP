@@ -1,22 +1,24 @@
-def grabber_top(queueTop, isRunning, topGrab, jpegCompression, srvRes):
+def grabber(queue, grabArea):
   from mss import mss
-  from cv2 import resize, cvtColor, COLOR_BGRA2BGR, imencode, IMWRITE_JPEG_QUALITY
-  from numpy import asarray
   with mss() as sct:
-    while isRunning.value:
-      queueTop.put(imencode('.jpg', cvtColor(resize(asarray(sct.grab(topGrab)), srvRes), COLOR_BGRA2BGR), (IMWRITE_JPEG_QUALITY, jpegCompression))[1].tobytes())
-  print('Top Grabber Finished!')
+    while 1:
+      queue.put(sct.grab(grabArea))
+  print('Grabber Finished!')
 
-def grabber_down(queueDown, isRunning, downGrab, jpegCompression, srvRes):
-  from mss import mss
-  from cv2 import resize, cvtColor, COLOR_BGRA2BGR, imencode, IMWRITE_JPEG_QUALITY
-  from numpy import asarray
-  with mss() as sct:
-    while isRunning.value:
-      queueDown.put(imencode('.jpg', cvtColor(resize(asarray(sct.grab(downGrab)),srvRes), COLOR_BGRA2BGR), (IMWRITE_JPEG_QUALITY, jpegCompression))[1].tobytes())
-  print('Down Grabber Finished!')
+def imageProcessor(queueChunk, queueProcessedImage):
+  from numpy import asarray, concatenate
+  from cv2 import cvtColor, COLOR_BGRA2BGR
+  top = queueChunk[0]
+  down = queueChunk[1]
+  topFrame = top.get()
+  downFrame = down.get()
+  while 1:
+    if not top.empty(): topFrame = cvtColor(asarray(top.get_nowait()), COLOR_BGRA2BGR)
+    if not down.empty(): downFrame = cvtColor(asarray(down.get_nowait()), COLOR_BGRA2BGR)
+    queueProcessedImage.put(concatenate((topFrame, downFrame), axis=0))
+  print('Image Processor Finished!')
 
-def displayer(queueTop, queueDown, isRunning, cltScrSize, cltScrSizeHalf):
+def displayer(isRunning, queueProcessedImage, cltScrSize):
   import pygame
   import pygame.display
   import pygame.image
@@ -38,10 +40,8 @@ def displayer(queueTop, queueDown, isRunning, cltScrSize, cltScrSizeHalf):
         print('Quit Game')
         isRunning.value = 0
 
-    if not queueTop.empty(): SCR.blit(pygame.image.frombuffer(resize(imdecode(frombuffer(queueTop.get_nowait(), uint8), 1), cltScrSizeHalf), cltScrSizeHalf, 'BGR'), (0,0))
-    if not queueDown.empty(): SCR.blit(pygame.image.frombuffer(resize(imdecode(frombuffer(queueDown.get_nowait(), uint8), 1), cltScrSizeHalf), cltScrSizeHalf, 'BGR'), (0, cltScrSizeHalf[1]))
-
-    SCR.blit(FONT_COMIC.render(f'QUEUE: {str(queueTop.qsize())[:5]}, {str(queueDown.qsize())[:5]}', False, (0,255,0)),(10,30))
+    SCR.blit(pygame.image.frombuffer(resize(queueProcessedImage.get(), cltScrSize).tobytes(),cltScrSize,'BGR'),(0,0))  
+    SCR.blit(FONT_COMIC.render(f'QUEUE: {str(queueProcessedImage.qsize())[:5]}', False, (0,255,0)),(10,30))
     SCR.blit(FONT_COMIC.render(f'FPS: {str(clock.get_fps())[:5]}', False, (0,255,0)),(10,10))
 
     pygame.display.update()
@@ -78,7 +78,7 @@ if __name__ == "__main__":
   from time import sleep
   from pyautogui import size as screenSize
 
-  CLT_SCR_SIZE = (1280, 720) # EDITABLE
+  CLT_SCR_SIZE = (640, 480) # EDITABLE
   CLT_SCR_HEIGHT_HALF = CLT_SCR_SIZE[1] // 2
   CLT_SCR_SIZE_HALF = (CLT_SCR_SIZE[0], CLT_SCR_HEIGHT_HALF)
 
@@ -94,20 +94,23 @@ if __name__ == "__main__":
 
   JPEG_COMPRESSION = 80 # 0 HIGH COMPRESSION, 100 NO COMPRESSION
 
-  queueTop = Queue(maxsize=5)
-  queueDown = Queue(maxsize=5)
+  queueChunk = (Queue(maxsize=3), Queue(maxsize=3))
+  queueProcessedImage = Queue(maxsize=1)
 
   isGameRunning = Value('i', 1)
-  p1 = Process(target=grabber_top, args=(queueTop,isGameRunning, TOP_GRAB, JPEG_COMPRESSION, SRV_RES))
-  p2 = Process(target=grabber_down, args=(queueDown,isGameRunning, DOWN_GRAB, JPEG_COMPRESSION, SRV_RES))
-  p3 = Process(target=displayer, args=(queueTop, queueDown,isGameRunning, CLT_SCR_SIZE, CLT_SCR_SIZE_HALF))
+  p1 = Process(target=grabber, args=(queueChunk[0], TOP_GRAB, ))
+  p2 = Process(target=grabber, args=(queueChunk[1], DOWN_GRAB, ))
+  p3 = Process(target=imageProcessor, args=(queueChunk, queueProcessedImage, ))
+  p4 = Process(target=displayer, args=(isGameRunning, queueProcessedImage, CLT_SCR_SIZE, ))
   p1.start()
   p2.start()
   p3.start()
+  p4.start()
   while isGameRunning.value:
     sleep(5)
   p1.terminate()
   p2.terminate()
   p3.terminate()
+  p4.terminate()
   print('All processes terminated!')
   
