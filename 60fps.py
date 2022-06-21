@@ -2,6 +2,11 @@ def grabber_top(queueTop, isRunning, topGrab, jpegCompression, srvRes):
   from mss import mss
   from cv2 import resize, cvtColor, COLOR_BGRA2BGR, imencode, IMWRITE_JPEG_QUALITY
   from numpy import asarray
+  from socket import socket, AF_INET, SOCK_DGRAM
+  addrPortServer   = ('127.0.0.1', 20001)
+  UDPServerSocket = socket(family=AF_INET, type=SOCK_DGRAM)
+  UDPServerSocket.bind(addrPortServer)
+  UDPServerSocket.settimeout(1)
   with mss() as sct:
     while isRunning.value:
       queueTop.put(imencode('.jpg', cvtColor(resize(asarray(sct.grab(topGrab)), srvRes), COLOR_BGRA2BGR), (IMWRITE_JPEG_QUALITY, jpegCompression))[1].tobytes())
@@ -87,7 +92,7 @@ if __name__ == "__main__":
   MON_SIZE_HALF = (MON_SIZE[0], MON_HEIGHT_HALF)
 
   SRV_RES = MON_SIZE
-  # SRV_RES = (256, 144)
+  SRV_RES = (640, 480)
 
   TOP_GRAB = {'left':0, 'top': 0, 'width': MON_SIZE_HALF[0], 'height':MON_SIZE_HALF[1]}
   DOWN_GRAB = {'left':0, 'top': MON_SIZE_HALF[1], 'width': MON_SIZE_HALF[0], 'height':MON_SIZE_HALF[1]}
